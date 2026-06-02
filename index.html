@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>txta — Zero-Config Text-as-a-Service Engine</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="grid-overlay"></div>
+
+    <header class="site-header">
+        <div class="header-container">
+            <a href="#" class="logo">txta<span class="dot">.</span></a>
+            <nav class="nav-links">
+                <a href="#features">Capabilities</a>
+                <a href="#sandbox">Sandbox</a>
+                <a href="#docs">Integration</a>
+            </nav>
+            <div class="header-cta">
+                <a href="#sandbox" class="btn btn-secondary">Launch Console</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero-section">
+            <div class="container hero-content">
+                <div class="badge">v1.0.0 — Global Edge Launch</div>
+                <h1 class="hero-title">Decouple text from code. <br><span class="gradient-text">Stream copy at the Edge.</span></h1>
+                <p class="hero-subtitle">Drop raw text files. Generate globally replicated, edge-accelerated CDN endpoints instantly. Zero config. Sub-5ms delivery.</p>
+                
+                <div class="perspective-wrapper">
+                    <div class="dashboard-preview" id="heroDashboard">
+                        <div class="dash-header">
+                            <div class="dash-dots"><span></span><span></span><span></span></div>
+                            <div class="dash-title">txta-console // global-edge-mesh</div>
+                        </div>
+                        <div class="dash-body">
+                            <div class="metrics-row">
+                                <div class="metric-card">
+                                    <span class="metric-label">GLOBAL PURGE TIME</span>
+                                    <span class="metric-value">180ms</span>
+                                </div>
+                                <div class="metric-card">
+                                    <span class="metric-label">AVG LATENCY</span>
+                                    <span class="metric-value green-glow">4.2ms</span>
+                                </div>
+                                <div class="metric-card">
+                                    <span class="metric-label">UPTIME</span>
+                                    <span class="metric-value">99.999%</span>
+                                </div>
+                            </div>
+                            <div class="mock-terminal">
+                                <p class="line"><span class="t-purple">$</span> txta deploy --file=legal_terms.md</p>
+                                <p class="line t-dim">>> Analyzing token graph structural integrity...</p>
+                                <p class="line t-green">>> Success. Replicated across 284 Edge POPs globally.</p>
+                                <p class="line"><span class="t-cyan">URL:</span> https://cdn.txta.sh/v1/tx_80f1aa02</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="sandbox" class="sandbox-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title">Engine Sandbox</h2>
+                    <p class="section-description">Test the mutation engine live. Drag in a file or enter arbitrary copy to deploy immediately.</p>
+                </div>
+
+                <div class="sandbox-card">
+                    <div class="sandbox-state active" id="stateInput">
+                        <div class="drop-zone" id="dropZone">
+                            <input type="file" id="fileInput" accept=".txt,.md" style="display: none;">
+                            <div class="drop-zone-content">
+                                <svg class="drop-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path d="M12 4v12m0-12L8 8m4-4l4 4M4 20h16" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <p class="drop-prompt">Drag & drop your <code>.txt</code> or <code>.md</code> asset here, or <span class="browse-link">browse</span></p>
+                                <p class="drop-sub">Maximum file weight payload: 2MB</p>
+                            </div>
+                        </div>
+                        <div class="text-input-wrapper">
+                            <div class="input-header">Or compose text directly below</div>
+                            <textarea id="directText" placeholder="# Write or paste markdown metadata structure here..."></textarea>
+                        </div>
+                        <div class="action-row">
+                            <button class="btn btn-primary" id="btnGenerate">Compile Global Asset</button>
+                        </div>
+                    </div>
+
+                    <div class="sandbox-state" id="stateLoading">
+                        <div class="loading-wrapper">
+                            <div class="spinner"></div>
+                            <h3 class="loading-title">Encrypting & Propagating Layer</h3>
+                            <p class="loading-sub" id="loadingProgress">Allocating distributed memory buffers across active instances...</p>
+                        </div>
+                    </div>
+
+                    <div class="sandbox-state" id="stateOutput">
+                        <div class="success-header">
+                            <div class="success-icon-wrap">
+                                <svg class="success-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20 6L9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <h3>Deployment Finalized</h3>
+                            <p>Asset compiled safely into highly distributed immutable static storage caches.</p>
+                        </div>
+                        <div class="output-url-box">
+                            <span class="url-label">GET</span>
+                            <input type="text" id="generatedUrl" value="https://api.txta.com/v1/text/usr_99/about" readonly>
+                            <button class="btn btn-copy" id="btnCopy">
+                                <span class="copy-text">Copy</span>
+                            </button>
+                        </div>
+                        <div class="output-actions">
+                            <button class="btn btn-secondary" id="btnReset">Deploy Another Asset</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="docs" class="code-section">
+            <div class="container grid-split">
+                <div class="code-meta-content">
+                    <div class="badge">Architecture Ecosystem</div>
+                    <h2 class="section-title">Minimalist Dev Footprint</h2>
+                    <p class="section-description">Stop managing redundant JSON key layers or hardcoded static config arrays just to show descriptive page text. Fetch directly using native browser APIs with optimal compression overhead profiles.</p>
+                    <ul class="feature-checklist">
+                        <li>Native Edge payload compression (Brotli)</li>
+                        <li>Automated stale-while-revalidate headers built-in</li>
+                        <li>No client runtime libraries needed</li>
+                    </ul>
+                </div>
+                <div class="code-editor-block">
+                    <div class="editor-header">
+                        <div class="editor-tab active">app.js</div>
+                        <div class="editor-tab">Next.js</div>
+                        <div class="editor-tab">Svelte</div>
+                    </div>
+                    <div class="editor-body">
+                        <pre><code><span class="keyword">const</span> <span class="variable">TXTA_ENDPOINT</span> = <span class="string">"https://api.txta.com/v1/text/usr_99/about"</span>;
+
+<span class="comment">// Ultra low latency asynchronous render sequence</span>
+<span class="keyword">async function</span> <span class="function">streamTextAsset</span>() {
+    <span class="keyword">const</span> <span class="variable">response</span> = <span class="keyword">await</span> <span class="function">fetch</span>(<span class="variable">TXTA_ENDPOINT</span>, {
+        <span class="property">cache</span>: <span class="string">'default'</span>
+    });
+    
+    <span class="keyword">if</span> (<span class="variable">response</span>.<span class="property">ok</span>) {
+        <span class="keyword">const</span> <span class="variable">payload</span> = <span class="keyword">await</span> <span class="variable">response</span>.<span class="function">text</span>();
+        <span class="variable">document</span>.<span class="function">getElementById</span>(<span class="string">'target-node'</span>).<span class="property">textContent</span> = <span class="variable">payload</span>;
+    }
+}
+
+<span class="function">streamTextAsset</span>();</code></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="features" class="features-section">
+            <div class="container">
+                <div class="section-header text-center">
+                    <h2 class="section-title">Engine Architecture Infrastructure</h2>
+                </div>
+                <div class="capabilities-grid">
+                    <div class="capability-card">
+                        <div class="cap-icon-box">⚡</div>
+                        <h3>Edge-Accelerated (Sub-5ms)</h3>
+                        <p>Cached near zero-distance layer execution inside global Edge topologies. Bypasses typical cloud data round-trips flawlessly.</p>
+                    </div>
+                    <div class="capability-card">
+                        <div class="cap-icon-box">⚙️</div>
+                        <h3>Zero Configuration</h3>
+                        <p>No schemas, no provisioning databases, no access tokens configuration or DNS setups needed to spin up your workflows.</p>
+                    </div>
+                    <div class="capability-card">
+                        <div class="cap-icon-box">🔗</div>
+                        <h3>Decoupled Workflows</h3>
+                        <p>Isolate your copy updates from operational application build artifacts completely. Edit code and copy concurrently without clashes.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-inner">
+            <p class="f-logo">txta<span>.</span></p>
+            <p class="copyright">&copy; 2026 txta Inc. Deep architecture, hyper-focused scalability systems layout.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
