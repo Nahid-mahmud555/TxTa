@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NewsPulse — বাংলা সংবাদ</title>
+  <meta name="description" content="বিশ্বের সেরা সংবাদ উৎস থেকে বাংলায় সংক্ষিপ্ত সংবাদ" />
+
+  <!-- Google Fonts: Hind Siliguri (Bengali) + Inter (UI) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Supabase JS (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+  <style>
+    /* ═══════════════════════════════════════════════
+       DESIGN TOKENS
+    ═══════════════════════════════════════════════ */
+    :root {
+      --bg-base:      #020817;
+      --bg-surface:   #0f172a;
+      --bg-card:      #0f1b2d;
+      --bg-card-hover:#131f30;
+      --border:       #1e2d3d;
+      --border-hover: #334155;
+
+      --text-primary:   #e2e8f0;
+      --text-secondary: #94a3b8;
+      --text-muted:     #475569;
+      --text-faint:     #334155;
+
+      --accent:        #6366f1;
+      --accent-dim:    rgba(99, 102, 241, 0.15);
+      --accent-glow:   rgba(99, 102, 241, 0.30);
+
+      --cat-tech-bg:  rgba(139,92,246,0.12); --cat-tech-text: #c4b5fd;  --cat-tech-ring: rgba(139,92,246,0.25);
+      --cat-nat-bg:   rgba(16,185,129,0.12); --cat-nat-text:  #6ee7b7;  --cat-nat-ring:  rgba(16,185,129,0.25);
+      --cat-sports-bg:rgba(245,158,11,0.12); --cat-sports-text:#fcd34d; --cat-sports-ring:rgba(245,158,11,0.25);
+      --cat-jobs-bg:  rgba(14,165,233,0.12); --cat-jobs-text: #7dd3fc;  --cat-jobs-ring: rgba(14,165,233,0.25);
+      --cat-crime-bg: rgba(239,68,68,0.12);  --cat-crime-text:#fca5a5;  --cat-crime-ring: rgba(239,68,68,0.25);
+
+      --radius-card: 16px;
+      --radius-pill: 999px;
+    }
+
+    /* ═══════════════════════════════════════════════
+       RESET & BASE
+    ═══════════════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: "Hind Siliguri", sans-serif;
+      background: var(--bg-base);
+      color: var(--text-primary);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* Language: English override */
+    body.lang-en {
+      font-family: "Inter", sans-serif;
+    }
+    body.lang-en .card-title,
+    body.lang-en .bullet-item,
+    body.lang-en .cat-badge,
+    body.lang-en .tab-btn,
+    body.lang-en .btn,
+    body.lang-en .welcome-subtitle,
+    body.lang-en .feature-item,
+    body.lang-en .input-label,
+    body.lang-en .checkbox-label,
+    body.lang-en .empty-title,
+    body.lang-en .empty-sub,
+    body.lang-en .source-label,
+    body.lang-en .deadline-label,
+    body.lang-en .result-count,
+    body.lang-en .profile-badge,
+    body.lang-en .footer p,
+    body.lang-en .live-badge,
+    body.lang-en .brand-sub,
+    body.lang-en .error-message {
+      font-family: "Inter", sans-serif;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar       { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--bg-base); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+    /* ═══════════════════════════════════════════════
+       LANGUAGE TOGGLE
+    ═══════════════════════════════════════════════ */
+    .lang-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+
+    .lang-toggle:hover {
+      border-color: var(--border-hover);
+    }
+
+    .lang-option {
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+      transition: all 0.2s ease;
+      font-family: "Inter", sans-serif;
+    }
+
+    .lang-option.active {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    /* ═══════════════════════════════════════════════
+       ONBOARDING MODAL
+    ═══════════════════════════════════════════════ */
+    .onboarding-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(2, 8, 23, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.3s ease;
+      padding: 20px;
+    }
+
+    .onboarding-overlay.hidden {
+      display: none;
+    }
+
+    .onboarding-modal {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 40px 32px;
+      max-width: 520px;
+      width: 100%;
+      animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 25px 80px rgba(0,0,0,0.6), 0 0 0 1px var(--border);
+    }
+
+    /* Onboarding Steps */
+    .onboarding-step {
+      display: none;
+    }
+
+    .onboarding-step.active {
+      display: block;
+      animation: fadeInUp 0.35s ease both;
+    }
+
+    /* Welcome Step */
+    .welcome-icon {
+      font-size: 48px;
+      margin-bottom: 20px;
+      display: block;
+      text-align: center;
+      opacity: 0.8;
+    }
+
+    .welcome-title {
+      font-family: "Inter", sans-serif;
+      font-size: 28px;
+      font-weight: 600;
+      color: var(--text-primary);
+      text-align: center;
+      margin-bottom: 12px;
+      letter-spacing: -0.02em;
+    }
+
+    .welcome-subtitle {
+      font-size: 16px;
+      color: var(--text-secondary);
+      text-align: center;
+      margin-bottom: 32px;
+      line-height: 1.7;
+    }
+
+    .feature-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      color: var(--text-secondary);
+      padding: 10px 16px;
+      background: var(--bg-card);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .feature-icon {
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    /* Input Step */
+    .input-group {
+      margin-bottom: 24px;
+    }
+
+    .input-label {
+      font-family: "Inter", sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .age-input {
+      width: 100%;
+      padding: 12px 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text-primary);
+      font-size: 15px;
+      font-family: "Inter", sans-serif;
+      transition: all 0.2s ease;
+      outline: none;
+    }
+
+    .age-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+
+    .age-input::placeholder {
+      color: var(--text-faint);
+    }
+
+    /* Category Checkboxes */
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .category-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+
+    .category-checkbox:hover {
+      border-color: var(--border-hover);
+      background: var(--bg-card-hover);
+    }
+
+    .category-checkbox.selected {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+    }
+
+    .category-checkbox input[type="checkbox"] {
+      display: none;
+    }
+
+    .checkbox-indicator {
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .category-checkbox.selected .checkbox-indicator {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .checkbox-indicator::after {
+      content: "✓";
+      color: white;
+      font-size: 12px;
+      font-weight: bold;
+      opacity: 0;
+      transform: scale(0);
+      transition: all 0.2s ease;
+    }
+
+    .category-checkbox.selected .checkbox-indicator::after {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .checkbox-label {
+      font-size: 14px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .checkbox-icon {
+      font-size: 16px;
+      opacity: 0.6;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: var(--radius-pill);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      font-family: "Hind Siliguri", sans-serif;
+      transition: all 0.2s ease;
+      width: 100%;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: #ffffff;
+      box-shadow: 0 0 24px var(--accent-glow);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 32px var(--accent-glow);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--border-hover);
+      color: var(--text-primary);
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    .btn-row .btn {
+      flex: 1;
+    }
+
+    /* Step Indicator */
+    .step-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    .step-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--border);
+      transition: all 0.3s ease;
+    }
+
+    .step-dot.active {
+      background: var(--accent);
+      width: 24px;
+      border-radius: 4px;
+    }
+
+    .step-dot.completed {
+      background: #10b981;
+    }
+
+    .error-message {
+      color: #fca5a5;
+      font-size: 12px;
+      margin-top: 8px;
+      display: none;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .error-message.show {
+      display: block;
+    }
+
+    /* ═══════════════════════════════════════════════
+       HEADER
+    ═══════════════════════════════════════════════ */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(2, 8, 23, 0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .header-inner {
+      max-width: 1152px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .brand-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 56px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      color: var(--accent);
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .brand-name {
+      font-family: "Inter", sans-serif;
+      font-weight: 600;
+      font-size: 18px;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+    }
+
+    .brand-sub {
+      font-family: "Inter", sans-serif;
+      font-size: 13px;
+      color: var(--text-faint);
+    }
+
+    .live-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: "Inter", sans-serif;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10b981;
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+
+    /* Category nav */
+    .category-nav {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      overflow-x: auto;
+      padding-bottom: 12px;
+      scrollbar-width: none;
+    }
+    .category-nav::-webkit-scrollbar { display: none; }
+
+    .tab-btn {
+      flex-shrink: 0;
+      display: inline-flex !important;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 16px;
+      border-radius: var(--radius-pill);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      transition: all 0.2s ease;
+      font-family: "Hind Siliguri", sans-serif;
+      white-space: nowrap;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-primary);
+      background: rgba(255,255,255,0.06);
+    }
+
+    .tab-btn.active {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: #ffffff;
+      box-shadow: 0 0 24px var(--accent-glow);
+    }
+
+    .tab-icon { font-size: 11px; opacity: 0.65; }
+
+    /* ═══════════════════════════════════════════════
+       MAIN CONTENT
+    ═══════════════════════════════════════════════ */
+    .main {
+      max-width: 1152px;
+      margin: 0 auto;
+      padding: 32px 24px 64px;
+    }
+
+    .result-count {
+      font-family: "Inter", sans-serif;
+      font-size: 11px;
+      color: var(--text-faint);
+      margin-bottom: 20px;
+    }
+
+    /* User Profile Badge */
+    .profile-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-pill);
+      font-size: 12px;
+      color: var(--text-secondary);
+      cursor: default;
+      transition: all 0.2s ease;
+      margin-left: 8px;
+    }
+
+    .profile-badge.hidden {
+      display: none;
+    }
+
+    .profile-avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: white;
+    }
+
+    /* ═══════════════════════════════════════════════
+       GRID
+    ═══════════════════════════════════════════════ */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    @media (min-width: 640px)  { .grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (min-width: 1024px) { .grid { grid-template-columns: repeat(3, 1fr); } }
+
+    /* ═══════════════════════════════════════════════
+       CARDS
+    ═══════════════════════════════════════════════ */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      transition: border-color 0.25s, background 0.25s, box-shadow 0.25s;
+      animation: fadeInUp 0.35s ease both;
+    }
+
+    .card:hover {
+      border-color: var(--border-hover);
+      background: var(--bg-card-hover);
+      box-shadow: 0 0 0 1px var(--accent-glow),
+                  0 12px 40px rgba(0,0,0,0.5);
+    }
+
+    /* Card top row */
+    .card-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .cat-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: var(--radius-pill);
+      font-size: 11px;
+      font-weight: 500;
+      border: 1px solid transparent;
+    }
+
+    .cat-technology { background: var(--cat-tech-bg);   color: var(--cat-tech-text);   border-color: var(--cat-tech-ring);   }
+    .cat-national   { background: var(--cat-nat-bg);    color: var(--cat-nat-text);    border-color: var(--cat-nat-ring);    }
+    .cat-sports     { background: var(--cat-sports-bg); color: var(--cat-sports-text); border-color: var(--cat-sports-ring); }
+    .cat-jobs       { background: var(--cat-jobs-bg);   color: var(--cat-jobs-text);   border-color: var(--cat-jobs-ring);   }
+    .cat-crime      { background: var(--cat-crime-bg);  color: var(--cat-crime-text);  border-color: var(--cat-crime-ring);  }
+
+    .time-ago {
+      font-family: "Inter", sans-serif;
+      font-size: 11px;
+      color: var(--text-faint);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Card title */
+    .card-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+      line-height: 1.5;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* Bullet summary */
+    .bullet-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .bullet-item {
+      display: flex;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .bullet-arrow {
+      color: var(--accent);
+      font-size: 11px;
+      margin-top: 3px;
+      flex-shrink: 0;
+      opacity: 0.85;
+    }
+
+    /* Card footer */
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      margin-top: auto;
+    }
+
+    .source-label {
+      font-family: "Inter", sans-serif;
+      font-size: 11px;
+      color: var(--text-faint);
+    }
+
+    .source-name {
+      color: var(--text-muted);
+    }
+
+    .deadline-label {
+      font-family: "Inter", sans-serif;
+      font-size: 11px;
+      color: var(--cat-jobs-text);
+      font-weight: 500;
+    }
+
+    .read-link {
+      font-family: "Inter", sans-serif;
+      font-size: 11px;
+      color: var(--accent);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .read-link:hover { color: #a5b4fc; }
+
+    /* ═══════════════════════════════════════════════
+       SKELETON LOADER
+    ═══════════════════════════════════════════════ */
+    .skeleton-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .skeleton {
+      background: linear-gradient(90deg, #1e293b 25%, #243447 50%, #1e293b 75%);
+      background-size: 800px 100%;
+      animation: shimmer 1.8s linear infinite;
+      border-radius: 6px;
+    }
+
+    .sk-row { display: flex; justify-content: space-between; align-items: center; }
+    .sk-s   { height: 14px; width: 64px; }
+    .sk-xs  { height: 12px; width: 52px; }
+    .sk-l   { height: 15px; width: 100%; }
+    .sk-m   { height: 13px; }
+    .sk-bullets { display: flex; flex-direction: column; gap: 8px; }
+    .sk-b1  { height: 12px; width: 100%; }
+    .sk-b2  { height: 12px; width: 90%; }
+    .sk-b3  { height: 12px; width: 82%; }
+
+    /* ═══════════════════════════════════════════════
+       EMPTY STATE
+    ═══════════════════════════════════════════════ */
+    .empty-state {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 24px;
+      text-align: center;
+    }
+
+    .empty-icon  { font-size: 48px; opacity: 0.12; margin-bottom: 16px; }
+    .empty-title { font-size: 17px; color: var(--text-muted); margin-bottom: 6px; }
+    .empty-sub   { font-size: 13px; color: var(--text-faint); }
+
+    /* ═══════════════════════════════════════════════
+       FOOTER
+    ═══════════════════════════════════════════════ */
+    .footer {
+      border-top: 1px solid rgba(30,45,61,0.5);
+      padding: 28px 24px;
+      text-align: center;
+    }
+
+    .footer p {
+      font-family: "Inter", sans-serif;
+      font-size: 11px;
+      color: var(--text-faint);
+    }
+
+    /* ═══════════════════════════════════════════════
+       ANIMATIONS
+    ═══════════════════════════════════════════════ */
+    @keyframes shimmer {
+      0%   { background-position: -800px 0; }
+      100% { background-position:  800px 0; }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.45; transform: scale(0.75); }
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) { 
+      .brand-sub { display: none; }
+      .onboarding-modal {
+        padding: 32px 24px;
+      }
+      .category-grid {
+        grid-template-columns: 1fr;
+      }
+      .welcome-title {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════════════════════════════════════
+       ONBOARDING MODAL
+  ══════════════════════════════════════════ -->
+  <div class="onboarding-overlay" id="onboardingOverlay">
+    <div class="onboarding-modal">
+      
+      <div class="step-indicator" id="stepIndicator">
+        <div class="step-dot active" data-step="1"></div>
+        <div class="step-dot" data-step="2"></div>
+      </div>
+
+      <!-- Step 1: Welcome -->
+      <div class="onboarding-step active" id="step1">
+        <span class="welcome-icon">◈</span>
+        <h1 class="welcome-title" data-bn="NewsPulse এ স্বাগতম" data-en="Welcome to NewsPulse">NewsPulse এ স্বাগতম</h1>
+        <p class="welcome-subtitle" data-bn="আপনার পছন্দের সংবাদ, আপনার ভাষায়।<br>শুরু করতে কয়েকটি তথ্য দিন।" data-en="Your news, in your language.<br>Provide a few details to get started.">আপনার পছন্দের সংবাদ, আপনার ভাষায়।<br>শুরু করতে কয়েকটি তথ্য দিন।</p>
+        
+        <ul class="feature-list">
+          <li class="feature-item">
+            <span class="feature-icon">⚡</span>
+            <span data-bn="রিয়েল-টাইম বাংলা সংবাদ" data-en="Real-time news updates">রিয়েল-টাইম বাংলা সংবাদ</span>
+          </li>
+          <li class="feature-item">
+            <span class="feature-icon">🎯</span>
+            <span data-bn="আপনার পছন্দের ক্যাটাগরি" data-en="Your preferred categories">আপনার পছন্দের ক্যাটাগরি</span>
+          </li>
+          <li class="feature-item">
+            <span class="feature-icon">🔒</span>
+            <span data-bn="সম্পূর্ণ ফ্রি ও বিজ্ঞাপনমুক্ত" data-en="100% free & ad-free">সম্পূর্ণ ফ্রি ও বিজ্ঞাপনমুক্ত</span>
+          </li>
+        </ul>
+
+        <button class="btn btn-primary" id="startBtn" data-bn="শুরু করুন →" data-en="Get Started →">শুরু করুন →</button>
+      </div>
+
+      <!-- Step 2: Input Collection -->
+      <div class="onboarding-step" id="step2">
+        <h2 style="font-size: 20px; font-weight: 600; margin-bottom: 24px; color: var(--text-primary);" data-bn="আপনার তথ্য দিন" data-en="Tell us about yourself">আপনার তথ্য দিন</h2>
+
+        <div class="input-group">
+          <label class="input-label" data-bn="আপনার বয়স" data-en="Your Age">আপনার বয়স</label>
+          <input type="number" class="age-input" id="ageInput" placeholder="25" min="10" max="100" autocomplete="off" />
+          <div class="error-message" id="ageError" data-bn="দয়া করে ১০ থেকে ১০০ এর মধ্যে একটি বয়স লিখুন" data-en="Please enter an age between 10 and 100">দয়া করে ১০ থেকে ১০০ এর মধ্যে একটি বয়স লিখুন</div>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label" data-bn="আপনার পছন্দের নিউজ ক্যাটাগরি (এক বা একাধিক)" data-en="Preferred news categories (one or more)">আপনার পছন্দের নিউজ ক্যাটাগরি (এক বা একাধিক)</label>
+          <div class="category-grid" id="categoryGrid">
+            <label class="category-checkbox" data-category="technology">
+              <input type="checkbox" value="technology" />
+              <span class="checkbox-indicator"></span>
+              <span class="checkbox-icon">⬡</span>
+              <span class="checkbox-label" data-bn="প্রযুক্তি" data-en="Technology">প্রযুক্তি</span>
+            </label>
+            <label class="category-checkbox" data-category="national">
+              <input type="checkbox" value="national" />
+              <span class="checkbox-indicator"></span>
+              <span class="checkbox-icon">◉</span>
+              <span class="checkbox-label" data-bn="জাতীয়" data-en="National">জাতীয়</span>
+            </label>
+            <label class="category-checkbox" data-category="sports">
+              <input type="checkbox" value="sports" />
+              <span class="checkbox-indicator"></span>
+              <span class="checkbox-icon">◎</span>
+              <span class="checkbox-label" data-bn="খেলাধুলা" data-en="Sports">খেলাধুলা</span>
+            </label>
+            <label class="category-checkbox" data-category="jobs">
+              <input type="checkbox" value="jobs" />
+              <span class="checkbox-indicator"></span>
+              <span class="checkbox-icon">◇</span>
+              <span class="checkbox-label" data-bn="চাকরি" data-en="Jobs">চাকরি</span>
+            </label>
+            <label class="category-checkbox" data-category="crime">
+              <input type="checkbox" value="crime" />
+              <span class="checkbox-indicator"></span>
+              <span class="checkbox-icon">○</span>
+              <span class="checkbox-label" data-bn="বিশ্ব" data-en="World">বিশ্ব</span>
+            </label>
+          </div>
+          <div class="error-message" id="categoryError" data-bn="দয়া করে কমপক্ষে একটি ক্যাটাগরি নির্বাচন করুন" data-en="Please select at least one category">দয়া করে কমপক্ষে একটি ক্যাটাগরি নির্বাচন করুন</div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-secondary" id="backBtn" data-bn="← পিছনে" data-en="← Back">← পিছনে</button>
+          <button class="btn btn-primary" id="doneBtn" data-bn="সম্পন্ন ✓" data-en="Done ✓">সম্পন্ন ✓</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       HEADER
+  ══════════════════════════════════════════ -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="brand-row">
+        <div class="brand">
+          <span class="brand-icon">◈</span>
+          <span class="brand-name">NewsPulse</span>
+          <span class="brand-sub" data-bn="— বাংলা সংবাদ" data-en="— News in Bengali">— বাংলা সংবাদ</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <!-- Language Toggle -->
+          <div class="lang-toggle" id="langToggle" title="Toggle Language">
+            <span class="lang-option active" data-lang="bn">বাংলা</span>
+            <span class="lang-option" data-lang="en">EN</span>
+          </div>
+          <div class="live-badge">
+            <span class="live-dot"></span>
+            <span data-bn="সরাসরি" data-en="Live">সরাসরি</span>
+          </div>
+          <div class="profile-badge hidden" id="profileBadge">
+            <span class="profile-avatar" id="profileAvatar">N</span>
+            <span id="profileInfo"></span>
+          </div>
+        </div>
+      </div>
+
+      <nav class="category-nav" aria-label="সংবাদ বিভাগ" id="categoryNav">
+        <button class="tab-btn active" data-category="all">
+          <span class="tab-icon">◈</span>
+          <span data-bn="সব" data-en="All">সব</span>
+        </button>
+        <button class="tab-btn" data-category="technology">
+          <span class="tab-icon">⬡</span>
+          <span data-bn="প্রযুক্তি" data-en="Tech">প্রযুক্তি</span>
+        </button>
+        <button class="tab-btn" data-category="national">
+          <span class="tab-icon">◉</span>
+          <span data-bn="জাতীয়" data-en="National">জাতীয়</span>
+        </button>
+        <button class="tab-btn" data-category="sports">
+          <span class="tab-icon">◎</span>
+          <span data-bn="খেলাধুলা" data-en="Sports">খেলাধুলা</span>
+        </button>
+        <button class="tab-btn" data-category="jobs">
+          <span class="tab-icon">◇</span>
+          <span data-bn="চাকরি" data-en="Jobs">চাকরি</span>
+        </button>
+        <button class="tab-btn" data-category="crime">
+          <span class="tab-icon">○</span>
+          <span data-bn="বিশ্ব" data-en="World">বিশ্ব</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main">
+    <p class="result-count" id="resultCount"></p>
+    <div class="grid" id="newsGrid">
+      <div class="skeleton-card">
+        <div class="sk-row"><div class="skeleton sk-s"></div><div class="skeleton sk-xs"></div></div>
+        <div class="skeleton sk-l" style="height:16px"></div>
+        <div class="skeleton" style="height:14px;width:75%"></div>
+        <div class="sk-bullets">
+          <div class="skeleton sk-b1"></div>
+          <div class="skeleton sk-b2"></div>
+          <div class="skeleton sk-b3"></div>
+        </div>
+        <div class="skeleton" style="height:11px;width:40%"></div>
+      </div>
+      <div class="skeleton-card">
+        <div class="sk-row"><div class="skeleton sk-s"></div><div class="skeleton sk-xs"></div></div>
+        <div class="skeleton sk-l" style="height:16px"></div>
+        <div class="skeleton" style="height:14px;width:80%"></div>
+        <div class="sk-bullets">
+          <div class="skeleton sk-b1"></div>
+          <div class="skeleton sk-b2"></div>
+          <div class="skeleton sk-b3"></div>
+        </div>
+        <div class="skeleton" style="height:11px;width:35%"></div>
+      </div>
+      <div class="skeleton-card">
+        <div class="sk-row"><div class="skeleton sk-s"></div><div class="skeleton sk-xs"></div></div>
+        <div class="skeleton sk-l" style="height:16px"></div>
+        <div class="skeleton" style="height:14px;width:70%"></div>
+        <div class="sk-bullets">
+          <div class="skeleton sk-b1"></div>
+          <div class="skeleton sk-b2"></div>
+          <div class="skeleton sk-b3"></div>
+        </div>
+        <div class="skeleton" style="height:11px;width:45%"></div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p data-bn="NewsPulse · স্বয়ংক্রিয় সংবাদ সংগ্রহ · প্রতি ৬ ঘণ্টায় আপডেট" data-en="NewsPulse · Automated news aggregation · Updated every 6 hours">NewsPulse · স্বয়ংক্রিয় সংবাদ সংগ্রহ · প্রতি ৬ ঘণ্টায় আপডেট</p>
+  </footer>
+
+
+  <script>
+    // ──────────────────────────────────────────────────────────
+    // CONFIG
+    // ──────────────────────────────────────────────────────────
+    const SUPABASE_URL      = "https://bysrzzwcipgeeuntfkit.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_UrM7qtGcB_vkHuoF5BlnJg_4R8WfPY2";
+
+    const STORAGE_KEY_CATEGORY = "newspulse_preferred_category";
+    const STORAGE_KEY_PROFILE  = "newspulse_user_profile";
+    const STORAGE_KEY_LANG     = "newspulse_language";
+    
+    const VALID_CATEGORIES = ["all", "technology", "national", "sports", "jobs", "crime"];
+
+    // ──────────────────────────────────────────────────────────
+    // INIT SUPABASE
+    // ──────────────────────────────────────────────────────────
+    const { createClient } = supabase;
+    const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // ──────────────────────────────────────────────────────────
+    // GLOBAL STATE
+    // ──────────────────────────────────────────────────────────
+    let activeCategory = "all";
+    let realtimeChannel = null;
+    let userProfile = null;
+    let currentLang = "bn";
+
+    // ──────────────────────────────────────────────────────────
+    // LANGUAGE SYSTEM
+    // ──────────────────────────────────────────────────────────
+    function applyLanguage(lang) {
+      currentLang = lang;
+      
+      try { localStorage.setItem(STORAGE_KEY_LANG, lang); } catch(e) {}
+      
+      document.body.classList.toggle("lang-en", lang === "en");
+      
+      document.querySelectorAll("[data-bn][data-en]").forEach(el => {
+        const text = lang === "bn" ? el.getAttribute("data-bn") : el.getAttribute("data-en");
+        if (text !== null && text !== undefined) {
+          el.innerHTML = text;
+        }
+      });
+      
+      document.querySelectorAll("#langToggle .lang-option").forEach(opt => {
+        opt.classList.toggle("active", opt.dataset.lang === lang);
+      });
+      
+      document.documentElement.lang = lang === "bn" ? "bn" : "en";
+      
+      updateCategoryLabels(lang);
+      
+      const ageInput = document.getElementById("ageInput");
+      if (ageInput) {
+        ageInput.placeholder = lang === "bn" ? "উদাহরণ: 25" : "Example: 25";
+      }
+      
+      console.log("[Lang] Switched to:", lang);
+    }
+
+    function updateCategoryLabels(lang) {
+      const labelMap = {
+        all: { bn: "সব", en: "All" },
+        technology: { bn: "প্রযুক্তি", en: "Tech" },
+        national: { bn: "জাতীয়", en: "National" },
+        sports: { bn: "খেলাধুলা", en: "Sports" },
+        jobs: { bn: "চাকরি", en: "Jobs" },
+        crime: { bn: "বিশ্ব", en: "World" }
+      };
+      
+      document.querySelectorAll("#categoryNav .tab-btn").forEach(btn => {
+        const cat = btn.dataset.category;
+        if (labelMap[cat]) {
+          const span = btn.querySelector("span:last-child");
+          if (span) span.textContent = labelMap[cat][lang];
+        }
+      });
+    }
+
+    function loadLanguagePreference() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY_LANG);
+        if (saved === "bn" || saved === "en") return saved;
+      } catch(e) {}
+      return "bn";
+    }
+
+    // Language toggle click
+    document.getElementById("langToggle").addEventListener("click", (e) => {
+      const option = e.target.closest(".lang-option");
+      if (!option) return;
+      const lang = option.dataset.lang;
+      if (lang === currentLang) return;
+      applyLanguage(lang);
+      fetchArticles(activeCategory);
+    });
+
+    // ──────────────────────────────────────────────────────────
+    // CATEGORY NAVIGATION VISIBILITY
+    // ──────────────────────────────────────────────────────────
+    
+    function filterCategoryNav() {
+      const allButtons = document.querySelectorAll("#categoryNav .tab-btn");
+      
+      if (!userProfile || !userProfile.categories || userProfile.categories.length === 0) {
+        allButtons.forEach(btn => {
+          btn.style.setProperty('display', 'inline-flex', 'important');
+        });
+        return;
+      }
+
+      const allowed = ["all", ...userProfile.categories];
+      
+      allButtons.forEach(btn => {
+        const cat = btn.dataset.category;
+        if (allowed.includes(cat)) {
+          btn.style.setProperty('display', 'inline-flex', 'important');
+        } else {
+          btn.style.setProperty('display', 'none', 'important');
+        }
+      });
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // ONBOARDING LOGIC
+    // ──────────────────────────────────────────────────────────
+    function loadUserProfile() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY_PROFILE);
+        if (!raw) return null;
+        const profile = JSON.parse(raw);
+        if (profile && Array.isArray(profile.categories) && profile.age) {
+          return profile;
+        }
+        return null;
+      } catch {
+        return null;
+      }
+    }
+
+    function saveUserProfile(profile) {
+      try {
+        localStorage.setItem(STORAGE_KEY_PROFILE, JSON.stringify(profile));
+        console.log("[Onboarding] Profile saved:", profile);
+      } catch (error) {
+        console.warn("[Onboarding] Could not save profile:", error.message);
+      }
+    }
+
+    function showOnboarding() {
+      const overlay = document.getElementById("onboardingOverlay");
+      overlay.classList.remove("hidden");
+      overlay.style.display = "flex";
+      goToStep(1);
+    }
+
+    function hideOnboarding() {
+      const overlay = document.getElementById("onboardingOverlay");
+      overlay.style.display = "none";
+      overlay.classList.add("hidden");
+      updateProfileBadge();
+      
+      setTimeout(() => {
+        filterCategoryNav();
+      }, 100);
+    }
+
+    function goToStep(stepNumber) {
+      document.querySelectorAll(".onboarding-step").forEach(s => s.classList.remove("active"));
+      document.getElementById(`step${stepNumber}`).classList.add("active");
+
+      document.querySelectorAll(".step-dot").forEach((dot, i) => {
+        dot.classList.remove("active", "completed");
+        if (i + 1 === stepNumber) dot.classList.add("active");
+        if (i + 1 < stepNumber) dot.classList.add("completed");
+      });
+
+      document.querySelectorAll(".error-message").forEach(el => el.classList.remove("show"));
+      
+      applyLanguage(currentLang);
+    }
+
+    async function completeOnboarding() {
+      const ageInput = document.getElementById("ageInput");
+      const ageError = document.getElementById("ageError");
+      const categoryError = document.getElementById("categoryError");
+      
+      const age = parseInt(ageInput.value);
+      if (!age || age < 10 || age > 100) {
+        ageError.classList.add("show");
+        return;
+      }
+      ageError.classList.remove("show");
+
+      const checkedCategories = [];
+      document.querySelectorAll("#categoryGrid input[type='checkbox']:checked").forEach(cb => {
+        checkedCategories.push(cb.value);
+      });
+
+      if (checkedCategories.length === 0) {
+        categoryError.classList.add("show");
+        return;
+      }
+      categoryError.classList.remove("show");
+
+      userProfile = {
+        age: age,
+        categories: checkedCategories
+      };
+
+      const doneBtn = document.getElementById("doneBtn");
+      const originalText = doneBtn.innerHTML;
+      doneBtn.innerHTML = currentLang === "bn" ? "সংরক্ষণ হচ্ছে..." : "Saving...";
+      doneBtn.disabled = true;
+
+      try {
+        const { data, error } = await db
+          .from('user_preferences')
+          .insert([
+            { 
+              age: userProfile.age, 
+              categories: userProfile.categories 
+            }
+          ]);
+
+        if (error) {
+          console.error("[Supabase Error] ডাটাবেজে সেভ হয়নি:", error.message);
+        } else {
+          console.log("[Supabase Success] ডাটা সফলভাবে ডাটাবেজে গেছে:", data);
+        }
+      } catch (err) {
+        console.error("[Catch Error] নেটওয়ার্ক বা অন্য সমস্যা:", err);
+      } finally {
+        doneBtn.disabled = false;
+        doneBtn.innerHTML = originalText;
+      }
+
+      saveUserProfile(userProfile);
+
+      const preferredCategory = userProfile.categories[0];
+      activeCategory = preferredCategory;
+      saveCategoryPreference(preferredCategory);
+      updateActiveButton(preferredCategory);
+      
+      hideOnboarding();
+      filterCategoryNav();
+
+      fetchArticles(preferredCategory);
+      setupRealtime();
+    }
+
+    function updateProfileBadge() {
+      const badge = document.getElementById("profileBadge");
+      const avatar = document.getElementById("profileAvatar");
+      const info = document.getElementById("profileInfo");
+
+      if (userProfile) {
+        badge.classList.remove("hidden");
+        badge.style.cursor = "default";
+        avatar.textContent = userProfile.age.toString().charAt(0) || "N";
+        
+        if (currentLang === "bn") {
+          info.textContent = `বয়স ${userProfile.age} · ${userProfile.categories.length} ক্যাটাগরি`;
+        } else {
+          info.textContent = `Age ${userProfile.age} · ${userProfile.categories.length} categories`;
+        }
+        
+        badge.onclick = null;
+      }
+    }
+
+    // Category checkbox toggle
+    document.getElementById("categoryGrid").addEventListener("click", (e) => {
+      const checkbox = e.target.closest(".category-checkbox");
+      if (!checkbox) return;
+
+      const input = checkbox.querySelector("input[type='checkbox']");
+      input.checked = !input.checked;
+      
+      if (input.checked) {
+        checkbox.classList.add("selected");
+      } else {
+        checkbox.classList.remove("selected");
+      }
+
+      const anyChecked = document.querySelectorAll("#categoryGrid input[type='checkbox']:checked").length > 0;
+      if (anyChecked) {
+        document.getElementById("categoryError").classList.remove("show");
+      }
+    });
+
+    // ──────────────────────────────────────────────────────────
+    // CATEGORY PREFERENCE SYSTEM
+    // ──────────────────────────────────────────────────────────
+    function saveCategoryPreference(category) {
+      try {
+        localStorage.setItem(STORAGE_KEY_CATEGORY, category);
+      } catch (error) {}
+    }
+
+    function getCategoryPreference() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY_CATEGORY);
+        if (saved && VALID_CATEGORIES.includes(saved)) return saved;
+      } catch (error) {}
+      return "all";
+    }
+
+    function updateCategory(category) {
+      if (!VALID_CATEGORIES.includes(category)) return;
+      if (category === activeCategory) return;
+
+      activeCategory = category;
+      saveCategoryPreference(category);
+      updateActiveButton(category);
+      filterCategoryNav();
+      setupRealtime();
+      fetchArticles(category);
+    }
+
+    function updateActiveButton(category) {
+      document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.classList.remove("active");
+        if (btn.dataset.category === category) {
+          btn.classList.add("active");
+        }
+      });
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // HELPERS
+    // ──────────────────────────────────────────────────────────
+    function timeAgo(dateStr) {
+      const diff  = Date.now() - new Date(dateStr).getTime();
+      const mins  = Math.floor(diff / 60000);
+      const hours = Math.floor(mins / 60);
+      const days  = Math.floor(hours / 24);
+      
+      if (currentLang === "en") {
+        if (days  > 0) return `${days}d ago`;
+        if (hours > 0) return `${hours}h ago`;
+        if (mins  > 0) return `${mins}m ago`;
+        return "Just now";
+      }
+      
+      if (days  > 0) return `${days} দিন আগে`;
+      if (hours > 0) return `${hours} ঘণ্টা আগে`;
+      if (mins  > 0) return `${mins} মিনিট আগে`;
+      return "এইমাত্র";
+    }
+
+    function catClass(cat) {
+      const map = {
+        technology: "cat-technology",
+        national:   "cat-national",
+        sports:     "cat-sports",
+        jobs:       "cat-jobs",
+        crime:      "cat-crime",
+      };
+      return map[cat] || "cat-national";
+    }
+
+    function catLabel(cat) {
+      const mapBN = {
+        technology: "প্রযুক্তি",
+        national:   "জাতীয়",
+        sports:     "খেলাধুলা",
+        jobs:       "চাকরি",
+        crime:      "বিশ্ব",
+      };
+      const mapEN = {
+        technology: "Tech",
+        national:   "National",
+        sports:     "Sports",
+        jobs:       "Jobs",
+        crime:      "World",
+      };
+      return currentLang === "bn" ? (mapBN[cat] || cat) : (mapEN[cat] || cat);
+    }
+
+    function formatDeadline(dateStr) {
+      if (!dateStr) return "";
+      const locale = currentLang === "bn" ? "bn-BD" : "en-US";
+      return new Date(dateStr).toLocaleDateString(locale, {
+        day: "numeric", month: "short", year: "numeric"
+      });
+    }
+
+    function escapeHtml(str = "") {
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // RENDER
+    // ──────────────────────────────────────────────────────────
+    function renderSkeletons(count = 6) {
+      return Array.from({ length: count }).map(() => `
+        <div class="skeleton-card">
+          <div class="sk-row"><div class="skeleton sk-s"></div><div class="skeleton sk-xs"></div></div>
+          <div class="skeleton sk-l" style="height:16px"></div>
+          <div class="skeleton" style="height:14px;width:75%"></div>
+          <div class="sk-bullets">
+            <div class="skeleton sk-b1"></div>
+            <div class="skeleton sk-b2"></div>
+            <div class="skeleton sk-b3"></div>
+          </div>
+          <div class="skeleton" style="height:11px;width:40%"></div>
+        </div>
+      `).join("");
+    }
+
+    function renderCard(article, index) {
+      let title, summaries;
+      
+      if (currentLang === "en") {
+        title = article.englishTitle || article.bengaliTitle || "No Title";
+        summaries = article.englishSummaries || article.bengaliSummaries || [];
+      } else {
+        title = article.bengaliTitle || article.englishTitle || "কোনো শিরোনাম নেই";
+        summaries = article.bengaliSummaries || article.englishSummaries || [];
+      }
+      
+      const bullets = (summaries || []).map((b) => `
+        <li class="bullet-item"><span class="bullet-arrow">▸</span><span>${escapeHtml(b)}</span></li>
+      `).join("");
+
+      const sourceText = currentLang === "bn" ? "সূত্র" : "Source";
+      const readText = currentLang === "bn" ? "পড়ুন →" : "Read →";
+      const deadlineText = currentLang === "bn" ? "শেষ" : "Deadline";
+      const unknownText = currentLang === "bn" ? "অজানা" : "Unknown";
+
+      const deadlineHtml = (article.category === "jobs" && article.deadline)
+        ? `<span class="deadline-label">${deadlineText}: ${formatDeadline(article.deadline)}</span>`
+        : `<span class="source-label">${sourceText}: <span class="source-name">${escapeHtml(article.source_name || unknownText)}</span></span>`;
+
+      return `
+        <article class="card" style="animation-delay:${index * 55}ms" role="article">
+          <div class="card-meta">
+            <span class="cat-badge ${catClass(article.category)}">${catLabel(article.category)}</span>
+            <time class="time-ago">${timeAgo(article.created_at)}</time>
+          </div>
+          <h2 class="card-title">${escapeHtml(title)}</h2>
+          <ul class="bullet-list">${bullets}</ul>
+          <div class="card-footer">
+            ${deadlineHtml}
+            <a href="${escapeHtml(article.sourceUrl)}" target="_blank" rel="noopener noreferrer" class="read-link">${readText}</a>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderEmpty(category) {
+      const msg = currentLang === "bn"
+        ? (category === "all" ? "পাইপলাইন শীঘ্রই সংবাদ আনবে" : "এই বিভাগে এখন কোনো সংবাদ নেই")
+        : (category === "all" ? "News pipeline coming soon" : "No news in this category yet");
+      const titleText = currentLang === "bn" ? "কোনো সংবাদ নেই" : "No news found";
+      return `
+        <div class="empty-state">
+          <div class="empty-icon">◈</div>
+          <p class="empty-title">${titleText}</p>
+          <p class="empty-sub">${msg}</p>
+        </div>
+      `;
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // FETCH ARTICLES
+    // ──────────────────────────────────────────────────────────
+    async function fetchArticles(category) {
+      const grid  = document.getElementById("newsGrid");
+      const count = document.getElementById("resultCount");
+
+      grid.innerHTML = renderSkeletons(6);
+      count.textContent = "";
+
+      try {
+        let query = db.from("news_feed").select("*", { count: "exact" }).order("created_at", { ascending: false }).limit(50);
+        if (category !== "all") query = query.eq("category", category);
+
+        const { data, error, count: total } = await query;
+        if (error) { grid.innerHTML = renderEmpty(category); return; }
+
+        if (currentLang === "bn") {
+          count.textContent = category === "all" ? `${total || 0} টি সংবাদ (সকল)` : `${total || 0} টি সংবাদ (${catLabel(category)})`;
+        } else {
+          count.textContent = category === "all" ? `${total || 0} articles (All)` : `${total || 0} articles (${catLabel(category)})`;
+        }
+
+        if (!data || data.length === 0) { grid.innerHTML = renderEmpty(category); return; }
+
+        let filteredData = category !== "all" ? data.filter(a => a.category === category) : data;
+        grid.innerHTML = filteredData.map((article, i) => renderCard(article, i)).join("");
+      } catch (err) {
+        grid.innerHTML = renderEmpty(category);
+      }
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // REALTIME
+    // ──────────────────────────────────────────────────────────
+    function setupRealtime() {
+      if (realtimeChannel) db.removeChannel(realtimeChannel);
+      realtimeChannel = db.channel("newspulse_live")
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "news_feed" }, (payload) => {
+          if (activeCategory === "all" || payload.new.category === activeCategory) fetchArticles(activeCategory);
+        })
+        .subscribe();
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // INIT
+    // ──────────────────────────────────────────────────────────
+    function initializeApp() {
+      // Load language preference first
+      currentLang = loadLanguagePreference();
+      applyLanguage(currentLang);
+      
+      // Load user profile
+      userProfile = loadUserProfile();
+
+      if (!userProfile) {
+        console.log("[Init] No profile - showing onboarding");
+        showOnboarding();
+        updateActiveButton("all");
+        setTimeout(() => applyLanguage(currentLang), 50);
+      } else {
+        console.log("[Init] Returning user - profile already saved");
+        
+        document.getElementById("onboardingOverlay").style.display = "none";
+        document.getElementById("onboardingOverlay").classList.add("hidden");
+        
+        filterCategoryNav();
+        
+        const savedCategory = getCategoryPreference();
+        activeCategory = savedCategory;
+        updateActiveButton(savedCategory);
+        fetchArticles(savedCategory);
+        setupRealtime();
+        updateProfileBadge();
+      }
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // EVENT LISTENERS
+    // ──────────────────────────────────────────────────────────
+    
+    // Start button (Step 1 → Step 2)
+    document.getElementById("startBtn").addEventListener("click", () => {
+      goToStep(2);
+    });
+
+    // Back button (Step 2 → Step 1)
+    document.getElementById("backBtn").addEventListener("click", () => {
+      goToStep(1);
+    });
+
+    // Done button (Complete onboarding)
+    document.getElementById("doneBtn").addEventListener("click", () => {
+      completeOnboarding();
+    });
+
+    // Category nav click
+    document.getElementById("categoryNav").addEventListener("click", (e) => {
+      const btn = e.target.closest(".tab-btn");
+      if (!btn) return;
+      updateCategory(btn.dataset.category);
+    });
+
+    // ──────────────────────────────────────────────────────────
+    // START
+    // ──────────────────────────────────────────────────────────
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initializeApp);
+    } else {
+      initializeApp();
+    }
+  </script>
+</body>
+</html>
